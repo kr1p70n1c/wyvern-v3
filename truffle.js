@@ -9,6 +9,8 @@ var mumbaiMnemonic = process.env.MUMBAI_MNEMONIC || ''
 var mainnetMnemonic = process.env.MAINNET_MNEMONIC || ''
 var klaytnPrivateKey = process.env.KLAYTN_PRIVATE_KEY || ''
 var baobabPrivateKey = process.env.BAOBAB_PRIVATE_KEY || ''
+var rinkebyPrivateKey = process.env.RINKEBY_PRIVATE_KEY || ''
+var arbitrumtestPrivateKey = process.env.ARBITRUM_TESTNET_PRIVATE_KEY || ''
 var infuraKey = process.env.INFURA_KEY || '';
 
 var kasAccessKeyId = process.env.KAS_ACCESS_KEY_ID || ''
@@ -45,7 +47,7 @@ module.exports = {
     },
     rinkeby: {
       provider: function () {
-        return new HDWalletProvider(rinkebyMnemonic, 'https://rinkeby.infura.io/v3/'+infuraKey)
+        return new HDWalletProvider(rinkebyPrivateKey, 'https://rinkeby.infura.io/v3/'+infuraKey)
       },
       from: '',
       port: 8545,
@@ -54,6 +56,18 @@ module.exports = {
       networkCheckTimeout: 100000,
       gasPrice: 21110000000,
       confirmations: 2
+    },
+    arbitrumtest: {
+      provider: function () {
+        return new HDWalletProvider(arbitrumtestPrivateKey, 'https://arbitrum-rinkeby.infura.io/v3/' + infuraKey)
+      },
+      // from: '',
+      // port: 8545,
+      network_id: '421611',
+      gas: 0,
+      // networkCheckTimeout: 100000,
+      gasPrice: 0,
+      // confirmations: 2
     },
     mumbai: {
       provider: function () {

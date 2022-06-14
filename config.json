@@ -1,13 +1,14 @@
 {
   "deployed": {
     "rinkeby": {
-      "Migrations": "0x59851C99DFdD6b564840Bf762faA04a08CC947C9",
-      "WyvernAtomicizer": "0x4b989C43bb5283B19e6cF6C6cD85b1801B1b81F4",
-      "WyvernRegistry": "0x30caa00562AD2f2B41BB4b1943d28F84832ce0D6",
-      "WyvernExchange": "0xF40D3F036528Ed87b83748306c719757f22be4fE",
-      "WyvernStatic": "0x8Ee31C795d472a1d875621f0c4706B455011aD55",
+      "Migrations": "0x13c302C29BBaA5be391f0ee61cfD4038A7387258",
+      "WyvernAtomicizer": "0x0a525983d9E2F3CA0d6Fb4346c05C08A7314bf38",
+      "WyvernRegistry": "0x6C7D46E7d6A4393225194C9440BEAe2ce7891C62",
+      "WyvernExchange": "0x100bee35B90682bb2c60e312C22F159eFC11b43C",
+      "WyvernStatic": "0xf3D4Cc76aD0526E9ED77182C8aE509F024054457",
       "TestERC20": "0x9aEEfb174928ac0c5b70949808Ec6E30ef4D439B",
-      "TestERC721": "0xa50bd876df59C35BE8fCe3FEd239DCe8C378a25f"
+      "TestERC721": "0xa50bd876df59C35BE8fCe3FEd239DCe8C378a25f",
+      "StaticMarket": "0xAC0B7cda3F7db4d83EDf4146b9E1d688Bc2aE976"
     },
     "mainnet": {
       "Migrations": "0x2020bc01065f82f1ACfAcD93671FF339bD65f322",
@@ -31,6 +32,22 @@
       "StaticMarket": "0xa86AF1A5bB8AF2418500AAbdacB9B7d2217F91A5",
       "WyvernRegistry": "0x23d0a64aF6987A2d536B9c3bA72FAAf66c9D73b6",
       "WyvernExchange": "0xDBA99cE125C6140dC4b30D48cBdDc57Bc67dc2d1"
+    },
+    "arbitrumtest": {
+      "Migrations": "0x6C7D46E7d6A4393225194C9440BEAe2ce7891C62",
+      "WyvernAtomicizer": "0x100bee35B90682bb2c60e312C22F159eFC11b43C",
+      "WyvernStatic": "0x758342Cf533773146CE510ea8e26ee9D39F396EC",
+      "StaticMarket": "0x305cd677214883b27E7A710601121D9b67c5cA48",
+      "WyvernRegistry": "0x5992756B2a35cEEd0c850F54c918698271EF873E",
+      "WyvernExchange": "0x3459Deda29dEFcDa19eaf6D6275450bDF7d4C096"
+    },
+    "rinkeby-fork": {
+      "Migrations": "0x13c302C29BBaA5be391f0ee61cfD4038A7387258",
+      "WyvernAtomicizer": "0x0a525983d9E2F3CA0d6Fb4346c05C08A7314bf38",
+      "WyvernStatic": "0xf3D4Cc76aD0526E9ED77182C8aE509F024054457",
+      "StaticMarket": "0xAC0B7cda3F7db4d83EDf4146b9E1d688Bc2aE976",
+      "WyvernRegistry": "0x6C7D46E7d6A4393225194C9440BEAe2ce7891C62",
+      "WyvernExchange": "0x100bee35B90682bb2c60e312C22F159eFC11b43C"
     }
   }
 }

@@ -13,11 +13,28 @@ import "../registry/AuthenticatedProxy.sol";
 
 contract StaticERC20 {
 
+    function transferERC20ExactTo(bytes memory extra,
+        address[7] memory addresses, AuthenticatedProxy.HowToCall howToCall, uint[6] memory,
+        bytes memory data)
+    public
+    pure
+    {
+        // Decode extradata
+        (address token, uint amount, address to) = abi.decode(extra, (address, uint, address));
+
+        // Call target = token to give
+        require(addresses[2] == token);
+        // Call type = call
+        require(howToCall == AuthenticatedProxy.HowToCall.Call);
+        // Assert calldata
+        require(ArrayUtils.arrayEq(data, abi.encodeWithSignature("transferFrom(address,address,uint256)", addresses[1], to, amount)));
+    }
+
     function transferERC20Exact(bytes memory extra,
         address[7] memory addresses, AuthenticatedProxy.HowToCall howToCall, uint[6] memory,
         bytes memory data)
-        public
-        pure
+    public
+    pure
     {
         // Decode extradata
         (address token, uint amount) = abi.decode(extra, (address, uint));
