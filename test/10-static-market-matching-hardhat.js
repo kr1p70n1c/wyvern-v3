@@ -63,10 +63,6 @@ describe('WyvernExchange', function () {
         const selectorOne = web3.eth.abi.encodeFunctionSignature(
             'ERC721ForERC20(bytes,address[7],uint8[2],uint256[6],bytes,bytes)'
         );
-        const selectorTwo = web3.eth.abi.encodeFunctionSignature(
-            'ERC20ForERC721(bytes,address[7],uint8[2],uint256[6],bytes,bytes)'
-        );
-
         const paramsOne = web3.eth.abi.encodeParameters(
             ['address[2]', 'uint256[2]'],
             [
@@ -75,6 +71,9 @@ describe('WyvernExchange', function () {
             ]
         );
 
+        const selectorTwo = web3.eth.abi.encodeFunctionSignature(
+            'ERC20ForERC721(bytes,address[7],uint8[2],uint256[6],bytes,bytes)'
+        );
         const paramsTwo = web3.eth.abi.encodeParameters(
             ['address[2]', 'uint256[2]'],
             [

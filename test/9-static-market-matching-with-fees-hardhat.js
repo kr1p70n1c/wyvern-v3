@@ -2,6 +2,15 @@ const { expect } = require('chai');
 const { CHAIN_ID, wrap, ZERO_BYTES32, ZERO_ADDRESS } = require('./util');
 const TestERC20ABI = require('../abi/contracts/TestERC20.sol/TestERC20.json');
 const TestERC721ABI = require('../abi/contracts/TestERC721.sol/TestERC721.json');
+const { Kriptou } = require('kriptou.js');
+const {
+    WyvernProtocolSelectorInputTransferERC721Exact,
+    WyvernProtocolSelectorInputTransferERC20Exact,
+    WyvernProtocolSelectorInputSequenceAnyAfter,
+    WyvernProtocolSelectorInputSplit,
+    WyvernProtocolSelectorInputTransferERC20ExactTo,
+    WyvernProtocolSelectorInputSequenceExact
+} = require('kriptou.js/lib/plugin/wyvern-plugin.service');
 
 describe('WyvernExchange', function () {
     it('erc721 <> erc20 with checks', async function () {
@@ -21,6 +30,8 @@ describe('WyvernExchange', function () {
             await registry.grantInitialAuthentication(exchange.address);
             return { registry, exchange: wrap(exchange), atomicizer, statici };
         };
+
+        Kriptou.init();
 
         let [aliceAccount, bobAccount, carolAccount, david] = await ethers.getSigners();
         alice = aliceAccount.address;
@@ -76,109 +87,115 @@ describe('WyvernExchange', function () {
         const erc20c = new web3.eth.Contract(TestERC20ABI, erc20.address);
         const erc721c = new web3.eth.Contract(TestERC721ABI, erc721.address);
 
-        let selectorOne, extradataOne;
+        let call = {};
+
         {
-            const selector = web3.eth.abi.encodeFunctionSignature('split(bytes,address[7],uint8[2],uint256[6],bytes,bytes)');
             // Call should be an ERC721 transfer
-            const selectorCall = web3.eth.abi.encodeFunctionSignature(
-                'transferERC721Exact(bytes,address[7],uint8,uint256[6],bytes)'
+            const { selector: selectorCall, extraData: extradataCall } = Kriptou.Plugins.wyvern().getSelectorWithExtraData(
+                new WyvernProtocolSelectorInputTransferERC721Exact(erc721.address, tokenId)
             );
-            const extradataCall = web3.eth.abi.encodeParameters(['address', 'uint256'], [erc721.address, tokenId]);
+
+            const { selector: countercallSelector1, extraData: countercallExtradata1 } =
+                Kriptou.Plugins.wyvern().getSelectorWithExtraData(
+                    new WyvernProtocolSelectorInputTransferERC20Exact(erc20.address, amount)
+                );
+
             // Countercall should include an ERC20 transfer
-            const selectorCountercall = web3.eth.abi.encodeFunctionSignature(
-                'sequenceAnyAfter(bytes,address[7],uint8,uint256[6],bytes)'
-            );
-            const countercallSelector1 = web3.eth.abi.encodeFunctionSignature(
-                'transferERC20Exact(bytes,address[7],uint8,uint256[6],bytes)'
-            );
-            const countercallExtradata1 = web3.eth.abi.encodeParameters(['address', 'uint256'], [erc20.address, amount]);
-            const extradataCountercall = web3.eth.abi.encodeParameters(
-                ['address[]', 'uint256[]', 'bytes4[]', 'bytes'],
-                [[statici.address], [(countercallExtradata1.length - 2) / 2], [countercallSelector1], countercallExtradata1]
-            );
+            const { selector: selectorCountercall, extraData: extradataCountercall } =
+                Kriptou.Plugins.wyvern().getSelectorWithExtraData(
+                    new WyvernProtocolSelectorInputSequenceAnyAfter(
+                        [statici.address],
+                        [(countercallExtradata1.length - 2) / 2],
+                        [countercallSelector1],
+                        countercallExtradata1
+                    )
+                );
 
-            const params = web3.eth.abi.encodeParameters(
-                ['address[2]', 'bytes4[2]', 'bytes', 'bytes'],
-                [[statici.address, statici.address], [selectorCall, selectorCountercall], extradataCall, extradataCountercall]
+            const { selector: callSelector, extraData: callExtraData } = Kriptou.Plugins.wyvern().getSelectorWithExtraData(
+                new WyvernProtocolSelectorInputSplit(
+                    [statici.address, statici.address],
+                    [selectorCall, selectorCountercall],
+                    extradataCall,
+                    extradataCountercall
+                )
             );
-
-            selectorOne = selector;
-            extradataOne = params;
+            call.selector = callSelector;
+            call.extraData = callExtraData;
         }
 
-        const one = {
+        const order = {
             registry: registry.address,
             maker: alice,
             staticTarget: statici.address,
-            staticSelector: selectorOne,
-            staticExtradata: extradataOne,
-            // staticTarget: ZERO_ADDRESS,
-            // staticSelector: '0x00000000',
-            // staticExtradata: '0x',
+            staticSelector: call.selector,
+            staticExtradata: call.extraData,
             maximumFill: 1,
             listingTime: '0',
             expirationTime: '10000000000',
             salt: '11'
         };
-        const sigOne = exchange.sign2(one, alice, Buffer.from(process.env.HARDHAT_1_PRIVATE_KEY, 'hex'));
+        const orderSignature = exchange.sign2(order, alice, Buffer.from(process.env.HARDHAT_1_PRIVATE_KEY, 'hex'));
 
-        let selectorTwo, extradataTwo;
+        let counterCall = {};
         {
-            const selector = web3.eth.abi.encodeFunctionSignature('split(bytes,address[7],uint8[2],uint256[6],bytes,bytes)');
+            //// 1
+            const { selector: callSelector1, extraData: callExtradata1 } = Kriptou.Plugins.wyvern().getSelectorWithExtraData(
+                new WyvernProtocolSelectorInputTransferERC20Exact(erc20.address, amount)
+            );
+
+            //// 2
+            const { selector: callSelector2, extraData: callExtradata2 } = Kriptou.Plugins.wyvern().getSelectorWithExtraData(
+                new WyvernProtocolSelectorInputTransferERC20ExactTo(erc20.address, fee1, carol)
+            );
+
+            //// 3
+            const { selector: callSelector3, extraData: callExtradata3 } = Kriptou.Plugins.wyvern().getSelectorWithExtraData(
+                new WyvernProtocolSelectorInputTransferERC20ExactTo(erc20.address, fee2, david)
+            );
+
             // Call should be an ERC20 transfer to recipient + fees
-            const selectorCall = web3.eth.abi.encodeFunctionSignature('sequenceExact(bytes,address[7],uint8,uint256[6],bytes)');
-            const callSelector1 = web3.eth.abi.encodeFunctionSignature(
-                'transferERC20Exact(bytes,address[7],uint8,uint256[6],bytes)'
-            );
-            const callExtradata1 = web3.eth.abi.encodeParameters(['address', 'uint256'], [erc20.address, amount]);
-            const callSelector2 = web3.eth.abi.encodeFunctionSignature(
-                'transferERC20ExactTo(bytes,address[7],uint8,uint256[6],bytes)'
-            );
-            const callExtradata2 = web3.eth.abi.encodeParameters(['address', 'uint256', 'address'], [erc20.address, fee1, carol]);
-            const callSelector3 = web3.eth.abi.encodeFunctionSignature(
-                'transferERC20ExactTo(bytes,address[7],uint8,uint256[6],bytes)'
-            );
-            const callExtradata3 = web3.eth.abi.encodeParameters(['address', 'uint256', 'address'], [erc20.address, fee2, david]);
-            const extradataCall = web3.eth.abi.encodeParameters(
-                ['address[]', 'uint256[]', 'bytes4[]', 'bytes'],
-                [
+            const { selector: selectorCall, extraData: extradataCall } = Kriptou.Plugins.wyvern().getSelectorWithExtraData(
+                new WyvernProtocolSelectorInputSequenceExact(
                     [statici.address, statici.address, statici.address],
                     [(callExtradata1.length - 2) / 2, (callExtradata2.length - 2) / 2, (callExtradata3.length - 2) / 2],
                     [callSelector1, callSelector2, callSelector3],
                     callExtradata1 + callExtradata2.slice('2') + callExtradata3.slice('2')
-                ]
+                )
             );
+
             // Countercall should be an ERC721 transfer
-            const selectorCountercall = web3.eth.abi.encodeFunctionSignature(
-                'transferERC721Exact(bytes,address[7],uint8,uint256[6],bytes)'
-            );
-            const extradataCountercall = web3.eth.abi.encodeParameters(['address', 'uint256'], [erc721.address, tokenId]);
+            const { selector: selectorCountercall, extraData: extradataCountercall } =
+                Kriptou.Plugins.wyvern().getSelectorWithExtraData(
+                    new WyvernProtocolSelectorInputTransferERC721Exact(erc721.address, tokenId)
+                );
 
-            const params = web3.eth.abi.encodeParameters(
-                ['address[2]', 'bytes4[2]', 'bytes', 'bytes'],
-                [[statici.address, statici.address], [selectorCall, selectorCountercall], extradataCall, extradataCountercall]
-            );
+            const { selector: counterCallSelector, extraData: counterCallExtraData } =
+                Kriptou.Plugins.wyvern().getSelectorWithExtraData(
+                    new WyvernProtocolSelectorInputSplit(
+                        [statici.address, statici.address],
+                        [selectorCall, selectorCountercall],
+                        extradataCall,
+                        extradataCountercall
+                    )
+                );
 
-            selectorTwo = selector;
-            extradataTwo = params;
+            counterCall.selector = counterCallSelector;
+            counterCall.extraData = counterCallExtraData;
         }
 
-        const two = {
+        const counterOrder = {
             registry: registry.address,
             maker: bob,
             staticTarget: statici.address,
-            staticSelector: selectorTwo,
-            staticExtradata: extradataTwo,
-            // staticTarget: ZERO_ADDRESS,
-            // staticSelector: '0x00000000',
-            // staticExtradata: '0x',
+            staticSelector: counterCall.selector,
+            staticExtradata: counterCall.extraData,
             maximumFill: amount,
             listingTime: '0',
             expirationTime: '10000000000',
             salt: '12'
         };
 
-        const sigTwo = exchange.sign2(two, bob, Buffer.from(process.env.HARDHAT_2_PRIVATE_KEY, 'hex'));
+        const counterOrderSignature = exchange.sign2(counterOrder, bob, Buffer.from(process.env.HARDHAT_2_PRIVATE_KEY, 'hex'));
 
         const firstData = erc721c.methods.transferFrom(alice, bob, tokenId).encodeABI();
 
@@ -194,20 +211,20 @@ describe('WyvernExchange', function () {
             )
             .encodeABI();
 
-        const firstCall = { target: erc721.address, howToCall: 0, data: firstData };
-        const secondCall = {
+        const orderCall = { target: erc721.address, howToCall: 0, data: firstData };
+        const counterOrderCall = {
             target: atomicizer.address,
             howToCall: 1,
             data: secondData
         };
 
         await exchange.atomicMatchWith2(
-            one,
-            sigOne,
-            firstCall,
-            two,
-            sigTwo,
-            secondCall,
+            order,
+            orderSignature,
+            orderCall,
+            counterOrder,
+            counterOrderSignature,
+            counterOrderCall,
             ZERO_BYTES32,
             { from: carol },
             carolAccount
