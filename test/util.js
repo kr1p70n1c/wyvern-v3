@@ -312,24 +312,9 @@ const wrap = (inst) => {
             });
     };
     obj.sign2 = (order, account, privateKey) => {
-        console.log('sign2 - 1', order, account);
+        // console.log('sign2 - 1', order, account);
         const str = structToSign(order, inst.address);
-        console.log('sign2 - 2');
-        // return web3
-        //     .signTypedData(account, {
-        //         types: {
-        //             EIP712Domain: eip712Domain.fields,
-        //             Order: eip712Order.fields
-        //         },
-        //         domain: str.domain,
-        //         primaryType: 'Order',
-        //         message: order
-        //     })
-        //     .then((sigBytes) => {
-        //         console.log('sign - 3', sigBytes);
-        //         const sig = parseSig(sigBytes);
-        //         return sig;
-        //     });
+        // console.log('sign2 - 2');
 
         const data = {
             types: {
@@ -340,7 +325,7 @@ const wrap = (inst) => {
             primaryType: 'Order',
             message: order
         };
-        console.log('sign2 - 3', JSON.stringify(data, undefined, 4));
+        // console.log('sign2 - 3', JSON.stringify(data, undefined, 4));
         const signature = signTypedData({
             privateKey,
             // This represents the most basic "typed message" that is valid according to our types.
@@ -349,9 +334,9 @@ const wrap = (inst) => {
             data,
             version: SignTypedDataVersion.V3
         });
-        console.log('sign2 - 4', signature);
+        // console.log('sign2 - 4', signature);
         const parsedSignature = parseSig(signature);
-        console.log('sign2 - 5', parsedSignature);
+        // console.log('sign2 - 5', parsedSignature);
         return parsedSignature;
     };
     obj.personalSign = (order, account) => {

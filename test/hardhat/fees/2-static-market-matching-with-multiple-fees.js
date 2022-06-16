@@ -1,7 +1,7 @@
 const { expect } = require('chai');
-const { CHAIN_ID, wrap, ZERO_BYTES32, ZERO_ADDRESS } = require('./util');
-const TestERC20ABI = require('../abi/contracts/TestERC20.sol/TestERC20.json');
-const TestERC721ABI = require('../abi/contracts/TestERC721.sol/TestERC721.json');
+const { CHAIN_ID, wrap, ZERO_BYTES32, ZERO_ADDRESS } = require('../../util');
+const TestERC20ABI = require('../../../abi/contracts/TestERC20.sol/TestERC20.json');
+const TestERC721ABI = require('../../../abi/contracts/TestERC721.sol/TestERC721.json');
 const { Kriptou } = require('kriptou.js');
 const {
     WyvernProtocolSelectorInputTransferERC721Exact,
@@ -13,7 +13,7 @@ const {
 } = require('kriptou.js/lib/plugin/wyvern-plugin.service');
 
 describe('WyvernExchange', function () {
-    it('erc721 <> erc20 with checks', async function () {
+    it('erc721 <> erc20 with checks - multiple fees', async function () {
         const deploy_core_contracts = async () => {
             const WyvernRegistry = await ethers.getContractFactory('WyvernRegistry');
             const registry = await WyvernRegistry.deploy();
@@ -91,32 +91,32 @@ describe('WyvernExchange', function () {
 
         {
             // Call should be an ERC721 transfer
-            const { selector: selectorCall, extraData: extradataCall } = Kriptou.Plugins.wyvern().getSelectorWithExtraData(
+            const { selector: selectorCall, extraData: extraDataCall } = Kriptou.Plugins.wyvern().getSelectorWithExtraData(
                 new WyvernProtocolSelectorInputTransferERC721Exact(erc721.address, tokenId)
             );
 
-            const { selector: countercallSelector1, extraData: countercallExtradata1 } =
+            const { selector: counterCallSelector1, extraData: counterCallExtraData1 } =
                 Kriptou.Plugins.wyvern().getSelectorWithExtraData(
                     new WyvernProtocolSelectorInputTransferERC20Exact(erc20.address, amount)
                 );
 
-            // Countercall should include an ERC20 transfer
-            const { selector: selectorCountercall, extraData: extradataCountercall } =
+            // CounterCall should include an ERC20 transfer
+            const { selector: selectorCounterCall, extraData: extraDataCounterCall } =
                 Kriptou.Plugins.wyvern().getSelectorWithExtraData(
                     new WyvernProtocolSelectorInputSequenceAnyAfter(
                         [statici.address],
-                        [(countercallExtradata1.length - 2) / 2],
-                        [countercallSelector1],
-                        countercallExtradata1
+                        [(counterCallExtraData1.length - 2) / 2],
+                        [counterCallSelector1],
+                        counterCallExtraData1
                     )
                 );
 
             const { selector: callSelector, extraData: callExtraData } = Kriptou.Plugins.wyvern().getSelectorWithExtraData(
                 new WyvernProtocolSelectorInputSplit(
                     [statici.address, statici.address],
-                    [selectorCall, selectorCountercall],
-                    extradataCall,
-                    extradataCountercall
+                    [selectorCall, selectorCounterCall],
+                    extraDataCall,
+                    extraDataCounterCall
                 )
             );
             call.selector = callSelector;
@@ -139,12 +139,12 @@ describe('WyvernExchange', function () {
         let counterCall = {};
         {
             //// 1
-            const { selector: callSelector1, extraData: callExtradata1 } = Kriptou.Plugins.wyvern().getSelectorWithExtraData(
+            const { selector: callSelector1, extraData: callExtraData1 } = Kriptou.Plugins.wyvern().getSelectorWithExtraData(
                 new WyvernProtocolSelectorInputTransferERC20Exact(erc20.address, amount)
             );
 
             //// 2
-            const { selector: callSelector2, extraData: callExtradata2 } = Kriptou.Plugins.wyvern().getSelectorWithExtraData(
+            const { selector: callSelector2, extraData: callExtraData2 } = Kriptou.Plugins.wyvern().getSelectorWithExtraData(
                 new WyvernProtocolSelectorInputTransferERC20ExactTo(erc20.address, fee1, carol)
             );
 
@@ -154,17 +154,17 @@ describe('WyvernExchange', function () {
             );
 
             // Call should be an ERC20 transfer to recipient + fees
-            const { selector: selectorCall, extraData: extradataCall } = Kriptou.Plugins.wyvern().getSelectorWithExtraData(
+            const { selector: selectorCall, extraData: extraDataCall } = Kriptou.Plugins.wyvern().getSelectorWithExtraData(
                 new WyvernProtocolSelectorInputSequenceExact(
                     [statici.address, statici.address, statici.address],
-                    [(callExtradata1.length - 2) / 2, (callExtradata2.length - 2) / 2, (callExtradata3.length - 2) / 2],
+                    [(callExtraData1.length - 2) / 2, (callExtraData2.length - 2) / 2, (callExtradata3.length - 2) / 2],
                     [callSelector1, callSelector2, callSelector3],
-                    callExtradata1 + callExtradata2.slice('2') + callExtradata3.slice('2')
+                    callExtraData1 + callExtraData2.slice('2') + callExtradata3.slice('2')
                 )
             );
 
             // Countercall should be an ERC721 transfer
-            const { selector: selectorCountercall, extraData: extradataCountercall } =
+            const { selector: selectorCounterCall, extraData: extraDataCounterCall } =
                 Kriptou.Plugins.wyvern().getSelectorWithExtraData(
                     new WyvernProtocolSelectorInputTransferERC721Exact(erc721.address, tokenId)
                 );
@@ -173,9 +173,9 @@ describe('WyvernExchange', function () {
                 Kriptou.Plugins.wyvern().getSelectorWithExtraData(
                     new WyvernProtocolSelectorInputSplit(
                         [statici.address, statici.address],
-                        [selectorCall, selectorCountercall],
-                        extradataCall,
-                        extradataCountercall
+                        [selectorCall, selectorCounterCall],
+                        extraDataCall,
+                        extraDataCounterCall
                     )
                 );
 

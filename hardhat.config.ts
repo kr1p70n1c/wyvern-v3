@@ -141,7 +141,7 @@ const config: HardhatUserConfig = {
     // solidity: '0.8.13',
     networks: {
         hardhat: {
-            loggingEnabled: true,
+            loggingEnabled: false,
             allowUnlimitedContractSize: true,
             accounts: getAccounts('hardhat')
         },
@@ -151,6 +151,9 @@ const config: HardhatUserConfig = {
         },
         rinkeby: createTestnetConfig('rinkeby'),
         rinkarby: createTestnetConfig('rinkarby')
+    },
+    paths: {
+        tests: './test/hardhat'
     },
     gasReporter: {
         enabled: process.env.REPORT_GAS !== undefined,

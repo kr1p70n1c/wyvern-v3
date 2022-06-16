@@ -4,10 +4,10 @@ const Web3 = require('web3');
 const provider = new Web3.providers.HttpProvider('http://localhost:8545');
 const web3 = new Web3(provider);
 
-const { wrap, ZERO_BYTES32, CHAIN_ID, ZERO_ADDRESS, assertIsRejected } = require('./util');
+const { wrap, ZERO_BYTES32, CHAIN_ID, ZERO_ADDRESS, assertIsRejected } = require('../util');
 const { expect } = require('chai');
-const TestERC20ABI = require('../abi/contracts/TestERC20.sol/TestERC20.json');
-const TestERC721ABI = require('../abi/contracts/TestERC721.sol/TestERC721.json');
+const TestERC20ABI = require('../../abi/contracts/TestERC20.sol/TestERC20.json');
+const TestERC721ABI = require('../../abi/contracts/TestERC721.sol/TestERC721.json');
 
 describe('WyvernExchange', function () {
     const deploy_core_contracts = async () => {
