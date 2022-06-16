@@ -23,6 +23,8 @@ yarn
 
 #### Testing
 
+##### Truffle
+
 Run testrpc (ganache-cli) to provide a simulated EVM:
 
 ```bash
@@ -33,6 +35,14 @@ In a separate terminal, run the testuite:
 
 ```bash
 yarn test
+```
+
+##### Hardhat
+
+Only requirement is proper `.evm` setup, and no simulated EVM is necessary. 
+
+```bash
+yarn hardhat:test
 ```
 
 #### Linting

@@ -4,13 +4,13 @@ const TestERC20ABI = require('../../../abi/contracts/TestERC20.sol/TestERC20.jso
 const TestERC721ABI = require('../../../abi/contracts/TestERC721.sol/TestERC721.json');
 const { Kriptou } = require('kriptou.js');
 const {
-    WyvernProtocolSelectorInputTransferERC721Exact,
-    WyvernProtocolSelectorInputTransferERC20Exact,
-    WyvernProtocolSelectorInputSequenceAnyAfter,
-    WyvernProtocolSelectorInputSplit,
-    WyvernProtocolSelectorInputTransferERC20ExactTo,
-    WyvernProtocolSelectorInputSequenceExact
-} = require('kriptou.js/lib/plugin/wyvern-plugin.service');
+    WyvernProtocolPredicateTransferERC721Exact,
+    WyvernProtocolPredicateTransferERC20Exact,
+    WyvernProtocolPredicateSequenceAnyAfter,
+    WyvernProtocolPredicateSplit,
+    WyvernProtocolPredicateTransferERC20ExactTo,
+    WyvernProtocolPredicateSequenceExact
+} = require('kriptou.js/lib/plugin/wyvern-protocol/predicates');
 
 describe('WyvernExchange', function () {
     it('erc721 <> erc20 with checks - multiple fees', async function () {
@@ -92,18 +92,18 @@ describe('WyvernExchange', function () {
         {
             // Call should be an ERC721 transfer
             const { selector: selectorCall, extraData: extraDataCall } = Kriptou.Plugins.wyvern().getSelectorWithExtraData(
-                new WyvernProtocolSelectorInputTransferERC721Exact(erc721.address, tokenId)
+                new WyvernProtocolPredicateTransferERC721Exact(erc721.address, tokenId)
             );
 
             const { selector: counterCallSelector1, extraData: counterCallExtraData1 } =
                 Kriptou.Plugins.wyvern().getSelectorWithExtraData(
-                    new WyvernProtocolSelectorInputTransferERC20Exact(erc20.address, amount)
+                    new WyvernProtocolPredicateTransferERC20Exact(erc20.address, amount)
                 );
 
             // CounterCall should include an ERC20 transfer
             const { selector: selectorCounterCall, extraData: extraDataCounterCall } =
                 Kriptou.Plugins.wyvern().getSelectorWithExtraData(
-                    new WyvernProtocolSelectorInputSequenceAnyAfter(
+                    new WyvernProtocolPredicateSequenceAnyAfter(
                         [statici.address],
                         [(counterCallExtraData1.length - 2) / 2],
                         [counterCallSelector1],
@@ -112,7 +112,7 @@ describe('WyvernExchange', function () {
                 );
 
             const { selector: callSelector, extraData: callExtraData } = Kriptou.Plugins.wyvern().getSelectorWithExtraData(
-                new WyvernProtocolSelectorInputSplit(
+                new WyvernProtocolPredicateSplit(
                     [statici.address, statici.address],
                     [selectorCall, selectorCounterCall],
                     extraDataCall,
@@ -140,22 +140,22 @@ describe('WyvernExchange', function () {
         {
             //// 1
             const { selector: callSelector1, extraData: callExtraData1 } = Kriptou.Plugins.wyvern().getSelectorWithExtraData(
-                new WyvernProtocolSelectorInputTransferERC20Exact(erc20.address, amount)
+                new WyvernProtocolPredicateTransferERC20Exact(erc20.address, amount)
             );
 
             //// 2
             const { selector: callSelector2, extraData: callExtraData2 } = Kriptou.Plugins.wyvern().getSelectorWithExtraData(
-                new WyvernProtocolSelectorInputTransferERC20ExactTo(erc20.address, fee1, carol)
+                new WyvernProtocolPredicateTransferERC20ExactTo(erc20.address, fee1, carol)
             );
 
             //// 3
             const { selector: callSelector3, extraData: callExtradata3 } = Kriptou.Plugins.wyvern().getSelectorWithExtraData(
-                new WyvernProtocolSelectorInputTransferERC20ExactTo(erc20.address, fee2, david)
+                new WyvernProtocolPredicateTransferERC20ExactTo(erc20.address, fee2, david)
             );
 
             // Call should be an ERC20 transfer to recipient + fees
             const { selector: selectorCall, extraData: extraDataCall } = Kriptou.Plugins.wyvern().getSelectorWithExtraData(
-                new WyvernProtocolSelectorInputSequenceExact(
+                new WyvernProtocolPredicateSequenceExact(
                     [statici.address, statici.address, statici.address],
                     [(callExtraData1.length - 2) / 2, (callExtraData2.length - 2) / 2, (callExtradata3.length - 2) / 2],
                     [callSelector1, callSelector2, callSelector3],
@@ -166,12 +166,12 @@ describe('WyvernExchange', function () {
             // Countercall should be an ERC721 transfer
             const { selector: selectorCounterCall, extraData: extraDataCounterCall } =
                 Kriptou.Plugins.wyvern().getSelectorWithExtraData(
-                    new WyvernProtocolSelectorInputTransferERC721Exact(erc721.address, tokenId)
+                    new WyvernProtocolPredicateTransferERC721Exact(erc721.address, tokenId)
                 );
 
             const { selector: counterCallSelector, extraData: counterCallExtraData } =
                 Kriptou.Plugins.wyvern().getSelectorWithExtraData(
-                    new WyvernProtocolSelectorInputSplit(
+                    new WyvernProtocolPredicateSplit(
                         [statici.address, statici.address],
                         [selectorCall, selectorCounterCall],
                         extraDataCall,
